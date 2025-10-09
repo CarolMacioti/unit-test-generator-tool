@@ -1,0 +1,39 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "types": ["node", "jest"],
+    "baseUrl": "src",
+    "rootDir": ".",
+    "ignoreDeprecations": "5.0",
+    "paths": {
+      "@/*": ["./*"],
+      "components/*": ["./components/*"],
+      "components": ["./components"],
+      "functions": ["./functions"],
+      "functions/*": ["./functions/*"],
+      "hooks": ["./hooks"],
+      "pages": ["./pages"],
+      "pages/*": ["./pages/*"],
+      "styles": ["./styles"],
+      "utils": ["./utils"],
+      "utils/*": ["./utils/*"],
+      "views": ["./views"],
+      "views/*": ["./views/*"],
+      "store": ["./store"],
+      "store/*": ["./store/*"],
+      "includes": ["./includes"],
+      "includes/*": ["./includes/*"]
+    },
+    "incremental": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "src",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "jest.setup.ts"
+  ]
+}
