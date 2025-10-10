@@ -124,8 +124,25 @@ describe('TestGeneratorTool', () => {
     fireEvent.click(generateButton);
 
     await waitFor(() => {
-      const textarea = screen.getByTestId('error-message-input');
-      expect(textarea).toHaveValue('Por favor, cole o código do componente');
+      const fixTab = screen.getByTestId('tab-fix');
+      fireEvent.click(fixTab);
+    });
+
+    const textarea = screen.getByTestId('error-message-input');
+    expect(textarea).toHaveValue('Por favor, cole o código do componente');
+  });
+
+  it('should show error message in generating code', async () => {
+    render(<TestGeneratorTool />);
+
+    const generateButton = screen.getByTestId('generate-button');
+    fireEvent.click(generateButton);
+
+    await waitFor(() => {
+      const errorElement = screen.getByTestId('generate-error-message');
+      expect(errorElement).toHaveTextContent(
+        'Por favor, cole o código do componente',
+      );
     });
   });
 

@@ -657,6 +657,14 @@ import { ${componentName} } from 'components/path/to/${componentName.toLowerCase
                     </>
                   )}
                 </button>
+                {errorMessage && activeTab === 'generate' && (
+                  <div
+                    data-testid="generate-error-message"
+                    className="mt-3 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200 text-sm"
+                  >
+                    {errorMessage}
+                  </div>
+                )}
               </>
             ) : (
               <>
