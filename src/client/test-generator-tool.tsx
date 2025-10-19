@@ -11,6 +11,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { ComponentAnalysis, PropInfo, TestScenario } from '@/types';
+import clarity from '@microsoft/clarity';
 
 export const TestGeneratorTool = () => {
   const [activeTab, setActiveTab] = useState<'generate' | 'fix'>('generate');
@@ -32,6 +33,8 @@ export const TestGeneratorTool = () => {
       setErrorMessage('Cole o código do teste e a mensagem de erro');
       return;
     }
+
+    clarity.event('generate_test_clicked');
 
     setIsFixing(true);
     setFixedTestCode('');
