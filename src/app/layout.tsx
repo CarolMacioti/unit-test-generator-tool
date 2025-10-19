@@ -16,9 +16,6 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const projetcId = 'tsu22ou67n';
-Clarity.init(projetcId);
-
 export const metadata: Metadata = {
   title: 'Test Generator Tool',
   description: 'Desenvolvido por Carolina Macioti, 2025.',
@@ -39,12 +36,11 @@ export default function RootLayout({
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
           t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
           y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "projetcId");
+      })(window, document, "clarity", "script", "tsu22ou67n");
     `}
           </Script>
         )}
       </head>
-      {/* <head>Testes Unitátios</head> */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
