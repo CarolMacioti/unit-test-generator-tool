@@ -87,7 +87,7 @@ exports[`TestGeneratorTool should render correctly 1`] = `
               Código do Componente/Hook
             </label>
             <textarea
-              class="w-full h-96 bg-slate-900 bg-slate-900 text-slate-100 border-slate-700  focus:border-purple-500 focus:outline-none resize-none"
+              class="w-full h-96 bg-slate-900 text-slate-100 border-slate-700  focus:border-purple-500 font-mono text-sm focus:outline-none p-4 resize-none"
               data-testid="component-code-input"
               placeholder="Cole aqui o código do componente ou hook que deseja testar..."
             />

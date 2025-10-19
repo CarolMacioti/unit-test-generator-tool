@@ -11,7 +11,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { ComponentAnalysis, PropInfo, TestScenario } from '@/types';
-import { title } from 'process';
 
 export const TestGeneratorTool = () => {
   const [activeTab, setActiveTab] = useState<'generate' | 'fix'>('generate');
@@ -25,6 +24,53 @@ export const TestGeneratorTool = () => {
 
   // ===== NOVA FEATURE: Tema Claro/Escuro =====
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [fixedTestCode, setFixedTestCode] = useState<string>('');
+  const [isFixing, setIsFixing] = useState<boolean>(false);
+
+  const handleFixTestWithAI = async () => {
+    if (!testCode.trim() || !errorMessage.trim()) {
+      setErrorMessage('Cole o código do teste e a mensagem de erro');
+      return;
+    }
+
+    setIsFixing(true);
+    setFixedTestCode('');
+    setGeneratedTest('');
+
+    try {
+      const response = await fetch('/api/fix-test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          testCode,
+          errorMessage,
+          componentCode: componentCode || null,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao corrigir teste');
+      }
+
+      setFixedTestCode(data.fixedCode);
+      setGeneratedTest(data.suggestions);
+    } catch (error) {
+      console.error('Erro detalhado:', error);
+
+      const errorMsg =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      setErrorMessage('Erro ao corrigir teste: ' + errorMsg);
+
+      setGeneratedTest(
+        `❌ Erro ao corrigir: ${errorMsg}\n\nVerifique:\n- Se a API key está configurada corretamente no .env.local\n- Se o servidor está rodando\n- O console do navegador (F12) para mais detalhes`,
+      );
+    } finally {
+      setIsFixing(false);
+    }
+  };
 
   // Carregar tema salvo
   useEffect(() => {
@@ -638,7 +684,7 @@ import { ${componentName} } from 'components/path/to/${componentName.toLowerCase
                     value={componentCode}
                     onChange={(e) => setComponentCode(e.target.value)}
                     placeholder="Cole aqui o código do componente ou hook que deseja testar..."
-                    className={`w-full h-96 ${inputBg} ${inputBg} ${inputText} ${borderColor}  focus:border-purple-500 focus:outline-none resize-none`}
+                    className={`w-full h-96 ${inputBg} ${inputText} ${borderColor}  focus:border-purple-500 font-mono text-sm focus:outline-none p-4 resize-none`}
                   />
                 </div>
 
@@ -700,21 +746,77 @@ import { ${componentName} } from 'components/path/to/${componentName.toLowerCase
                   />
                 </div>
 
-                <button
+                {/* <button
                   data-testid="fix-button"
-                  onClick={handleFixTest}
-                  disabled={isLoading}
+                  onClick={handleFixTestWithAI}
+                  disabled={isFixing}
                   className={`w-full bg-gradient-to-r from-red-600 to-orange-600 ${textColor} py-4 rounded-lg font-bold text-lg hover:from-red-700 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
                 >
-                  {isLoading ? (
-                    <>Analisando erro...</>
+                  {isFixing ? (
+                    <span data-testid="fixing-text">Corrigindo com IA...</span>
                   ) : (
                     <>
-                      <CheckCircle size={24} />
-                      Analisar e Corrigir
+                      <CheckCircle size={24} className="text-red-100" />
+                      Corrigir com IA
                     </>
                   )}
-                </button>
+                </button> */}
+
+                <div className="flex gap-2">
+                  <button
+                    data-testid="fix-button-simple"
+                    onClick={handleFixTest}
+                    disabled={isLoading}
+                    className={`flex-1 bg-gradient-to-r from-orange-600 to-yellow-600 ${textColor} py-4 rounded-lg font-bold text-lg hover:from-orange-700 hover:to-yellow-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
+                  >
+                    <AlertCircle size={24} />
+                    Análise Rápida
+                  </button>
+
+                  <button
+                    data-testid="fix-button"
+                    onClick={handleFixTestWithAI}
+                    disabled={isFixing}
+                    className={`flex-1 bg-gradient-to-r from-red-600 to-purple-600 ${textColor} py-4 rounded-lg font-bold text-lg hover:from-red-700 hover:to-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
+                  >
+                    {isFixing ? (
+                      <span data-testid="fixing-text">
+                        Corrigindo com IA...
+                      </span>
+                    ) : (
+                      <>
+                        <Wand2 size={24} />
+                        Corrigir com IA
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {fixedTestCode && (
+                  <div className={`${cardBg} rounded-lg p-6 shadow-xl mt-4`}>
+                    <label
+                      className={`flex items-center gap-2 ${textColor} font-semibold mb-3`}
+                    >
+                      <CheckCircle size={20} className="text-green-400" />
+                      Código Corrigido (Pronto para usar)
+                    </label>
+                    <textarea
+                      data-testid="fixed-code-output"
+                      value={fixedTestCode}
+                      readOnly
+                      className={`w-full h-96 ${inputBg} ${inputText} rounded-lg p-4 font-mono text-sm ${borderColor} border focus:outline-none resize-none`}
+                    />
+                    <button
+                      onClick={() => {
+                        copyToClipboard(fixedTestCode);
+                        alert('Código corrigido copiado!');
+                      }}
+                      className={`mt-3 w-full bg-green-600 ${textColor} py-2 rounded-lg hover:bg-green-700 transition-all`}
+                    >
+                      📋 Copiar Código Corrigido
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>

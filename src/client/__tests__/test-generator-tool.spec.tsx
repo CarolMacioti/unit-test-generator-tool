@@ -3,36 +3,6 @@ import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { TestGeneratorTool } from '../test-generator-tool';
 
 describe('TestGeneratorTool', () => {
-  // beforeEach(() => {
-  //   localStorage.clear();
-  //   jest.clearAllMocks();
-  // });
-
-  beforeEach(() => {
-    const localStorageMock = (function () {
-      let store: Record<string, string> = {};
-
-      return {
-        getItem: jest.fn((key) => store[key] || null),
-        setItem: jest.fn((key, value) => {
-          store[key] = value;
-        }),
-        removeItem: jest.fn((key) => {
-          delete store[key];
-        }),
-        clear: jest.fn(() => {
-          store = {};
-        }),
-      };
-    })();
-
-    Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-    });
-
-    jest.clearAllMocks();
-  });
-
   it('should render correctly', () => {
     const { container } = render(<TestGeneratorTool />);
     expect(container).toMatchSnapshot();
@@ -58,30 +28,36 @@ describe('TestGeneratorTool', () => {
     render(<TestGeneratorTool />);
 
     const textarea = screen.getByTestId('component-code-input');
+
+    // Usar act para garantir que o estado foi atualizado
     fireEvent.change(textarea, {
       target: { value: 'const MyComponent = () => {}' },
     });
 
-    // await waitFor(() => {
-    //   expect(
-    //     screen.getByDisplayValue('Por favor, cole o código do componente'),
-    //   ).toBeInTheDocument();
-    // }
+    // Verificar se o valor está no textarea
+    expect(textarea).toHaveValue('const MyComponent = () => {}');
+
+    // Verificar se localStorage foi chamado (após o useEffect ser acionado)
     await waitFor(() => {
-      expect(localStorage.setItem).toHaveBeenCalledWith(
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
         'lastComponent',
         'const MyComponent = () => {}',
       );
     });
   });
 
-  it('should toggle theme', () => {
+  it('should toggle theme', async () => {
     render(<TestGeneratorTool />);
 
     const themeButton = screen.getByTestId('theme-toggle-button');
     fireEvent.click(themeButton);
 
-    expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'light');
+    await waitFor(() => {
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        'theme',
+        'light',
+      );
+    });
   });
 
   it('should clear history when clicking clear button', () => {
@@ -90,9 +66,11 @@ describe('TestGeneratorTool', () => {
     const clearButton = screen.getByTestId('clear-history-button');
     fireEvent.click(clearButton);
 
-    expect(localStorage.removeItem).toHaveBeenCalledWith('lastComponent');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('lastTest');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('lastError');
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith(
+      'lastComponent',
+    );
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('lastTest');
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('lastError');
   });
 
   it('should generate test when clicking generate button', async () => {
@@ -108,13 +86,9 @@ describe('TestGeneratorTool', () => {
     const generateButton = screen.getByTestId('generate-button');
     fireEvent.click(generateButton);
 
-    await waitFor(
-      () => {
-        expect(screen.getByTestId('loading-text')).toBeInTheDocument();
-      },
-      // ,
-      // { timeout: 500 },
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId('loading-text')).toBeInTheDocument();
+    });
   });
 
   it('should show error message when generating without code', async () => {
@@ -146,19 +120,40 @@ describe('TestGeneratorTool', () => {
     });
   });
 
-  it('should download test file', () => {
+  it('should call AI fix API when clicking fix button', async () => {
     render(<TestGeneratorTool />);
 
-    // Mock necessário para o teste passar
-    const createElementSpy = jest.spyOn(document, 'createElement');
+    // Mudar para aba fix
+    const fixTab = screen.getByTestId('tab-fix');
+    fireEvent.click(fixTab);
 
-    // Simular análise completa
-    const textarea = screen.getByTestId('component-code-input');
-    fireEvent.change(textarea, {
-      target: { value: 'export const MyComponent = () => <div>Test</div>' },
+    // Adicionar código de teste
+    const testCodeInput = screen.getByTestId('test-code-input');
+    fireEvent.change(testCodeInput, {
+      target: { value: 'const test = () => {}' },
     });
 
-    // Aguardar geração e clicar em download seria necessário
-    expect(createElementSpy).toBeDefined();
+    // Adicionar mensagem de erro
+    const errorInput = screen.getByTestId('error-message-input');
+    fireEvent.change(errorInput, {
+      target: { value: 'TypeError: something went wrong' },
+    });
+
+    // Clicar no botão de correção
+    const fixButton = screen.getByTestId('fix-button');
+    fireEvent.click(fixButton);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/fix-test',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: expect.any(String),
+        }),
+      );
+    });
   });
 });

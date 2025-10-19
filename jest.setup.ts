@@ -1,8 +1,5 @@
 /* eslint-disable dot-notation */
 import '@testing-library/jest-dom';
-// import 'whatwg-fetch';
-
-// require('fake-indexeddb/auto');
 
 // Mock do Next.js Router
 jest.mock('next/router', () => ({
@@ -59,40 +56,59 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock do localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
-
 // Mock do URL.createObjectURL
 global.URL.createObjectURL = jest.fn(() => 'mocked-url');
 global.URL.revokeObjectURL = jest.fn();
 
 // Mock do document.execCommand
-document.execCommand = jest.fn();
+document.execCommand = jest.fn(() => true);
 
 // Mock do alert
 global.alert = jest.fn();
 
+// Mock do fetch para a API de correção
+global.fetch = jest.fn();
+
+// Setup global do localStorage (será sobrescrito em cada teste)
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string) => {
+      store[key] = value.toString();
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+  };
+};
+
+// Aplicar mock do localStorage globalmente
+Object.defineProperty(window, 'localStorage', {
+  value: createLocalStorageMock(),
+  writable: true,
+});
+
 // Limpar mocks antes de cada teste
 beforeEach(() => {
+  // Recriar localStorage mock para cada teste
+  Object.defineProperty(window, 'localStorage', {
+    value: createLocalStorageMock(),
+    writable: true,
+  });
+
   jest.clearAllMocks();
-  localStorageMock.clear();
+
+  // Reset fetch mock
+  (global.fetch as jest.Mock).mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      fixedCode: '// Código corrigido',
+      suggestions: '// Sugestões',
+    }),
+  });
 });
