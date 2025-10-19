@@ -26,12 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <head>Testes Unitátios</head>
+      {/* <head>Testes Unitátios</head> */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <Analytics mode="production" />
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>

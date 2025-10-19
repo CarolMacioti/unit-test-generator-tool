@@ -950,6 +950,9 @@ import { ${componentName} } from 'components/path/to/${componentName.toLowerCase
             </li>
           </ul>
         </div>
+        <footer className={`${textColor} text-xs mt-8 mb-3 text-center gap-2`}>
+          <p>Desenvolvido por Carolina Macioti, 2025.</p>
+        </footer>
       </div>
     </div>
   );
